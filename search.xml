@@ -3,8 +3,14 @@
   <entry>
     <title>有关session与token在技术选型上的一些思考</title>
     <url>/2020/03/01/about-session-and-token/</url>
-    <content><![CDATA[<h1 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h1><p>有关session与token在技术选型上的一些思考</p>
-]]></content>
+    <content><![CDATA[<blockquote>
+<p>前言：在做毕设中对有关session与token在技术选型上进行了一些深入的思考，以此记录，判明两者应该适合什么场景，各有哪些缺陷。</p>
+</blockquote>
+<a id="more"></a>
+
+<h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>&emsp;&emsp;在我的毕设中，涉及到了路由鉴权，当然这也是目前大多数系统中必然拥有的功能，为什么我把它单独拿出来说一遍呢，因为我在应用过程中经历了以下阶段：</p>
+<pre class="mermaid">graph LR
+    A("session(redis)")-->B("自定义jwt")-->C("标准jwt")</pre>]]></content>
       <tags>
         <tag>技术选型</tag>
       </tags>
