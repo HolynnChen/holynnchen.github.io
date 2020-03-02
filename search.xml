@@ -10,7 +10,62 @@
 
 <h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>&emsp;&emsp;在我的毕设中，涉及到了路由鉴权，当然这也是目前大多数系统中必然拥有的功能，为什么我把它单独拿出来说一遍呢，因为我在应用过程中经历了以下阶段：</p>
 <pre class="mermaid">graph LR
-    A("session(redis)")-->B("自定义jwt")-->C("标准jwt")</pre>]]></content>
+    A("session(redis)")
+    B("自定义jwt")
+    C("标准jwt")
+    A-->B-->C</pre>
+
+<h2 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h2><p>&emsp;&emsp;一开始是并没有考虑到很严格的性能控制，因此是采用了session设计，该特点在于比较安全，服务端可以控制客户的登录状态，同时确保用户状态的一致性。<br>&emsp;&emsp;后来是考虑到为了方便服务的拓展，因此把本来的基于redis的集中式session改成了无状态的jwt，为什么是自定义呢，因为我太蠢了，一开始想偷懒直接写了个自定义的jst和不完整的oauth2.0，后来才发现有安全风险就改掉，改为标准jwt了。</p>
+<h2 id="疑问"><a href="#疑问" class="headerlink" title="疑问"></a>疑问</h2><p>&emsp;&emsp;当然，会有人提出疑问，有什么区别，不安全在哪，如何解决？这些就是我接下来要解决的问题。</p>
+<h1 id="对比"><a href="#对比" class="headerlink" title="对比"></a>对比</h1><table>
+<thead>
+<tr>
+<th align="center">名称</th>
+<th align="center">session</th>
+<th align="center">jwt</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">识别方式</td>
+<td align="center">session_id</td>
+<td align="center">access_token</td>
+</tr>
+<tr>
+<td align="center">储存位置</td>
+<td align="center">redis+token<sup>1</sup></td>
+<td align="center">token<sup>1</sup></td>
+</tr>
+<tr>
+<td align="center">安全性</td>
+<td align="center">较高</td>
+<td align="center">较低</td>
+</tr>
+<tr>
+<td align="center">实时性</td>
+<td align="center">较高</td>
+<td align="center">较低</td>
+</tr>
+<tr>
+<td align="center">缺陷</td>
+<td align="center">频繁查询redis<br>在分布式系统中有较大网络压力</td>
+<td align="center">用户信息无法实时更新<br>状态无法注销</td>
+</tr>
+<tr>
+<td align="center">解决方法</td>
+<td align="center">增加配置<br>部署redis集群</td>
+<td align="center">对数据库重要变更时<br>以数据库内信息为准验证<sup>2</sup></td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>注1：token可储存在web用户的cookie里<br><br>注2：如涉及数据删除、系统设置变更等</p>
+</blockquote>
+<h2 id="session"><a href="#session" class="headerlink" title="session"></a>session</h2><p>&emsp;&emsp;session可以说是最传统的会话管理方案了，自然也十分稳定，但是矛盾只突出在于比较适合单机或小集群，一旦redis挂了会话就会丢失。</p>
+<h2 id="jwt"><a href="#jwt" class="headerlink" title="jwt"></a>jwt</h2><p>&emsp;&emsp;全称JSON Web Token，是无状态的跨域认证解决方案，详细介绍可以看看<a href="https://www.ruanyifeng.com/blog/2018/07/json_web_token-tutorial.html" target="_blank" rel="noopener">阮一峰的文章</a>，这里就不做详细介绍</p>
+<h1 id="适用范围"><a href="#适用范围" class="headerlink" title="适用范围"></a>适用范围</h1><h2 id="session-1"><a href="#session-1" class="headerlink" title="session"></a>session</h2><p>&emsp;&emsp;我个人认为小集群或单机，或者是起步阶段完全可以用session管理，十分成熟，往往有现成的中间件使用。</p>
+<h2 id="jwt-1"><a href="#jwt-1" class="headerlink" title="jwt"></a>jwt</h2><p>&emsp;&emsp;有多个服务或域名，希望能跨服务共享用户信息的状况，或者是服务体量已经达到一定规模，希望优化性能等情况。</p>
+<h2 id="session-jwt"><a href="#session-jwt" class="headerlink" title="session+jwt"></a>session+jwt</h2><p>&emsp;&emsp;看起来是多次一举，但或许未来可能有业务用得上。在某个要求实时性、一致性高的闭环业务/功能中可以采用session来储存状态，小范围应用，确保规模不是很大，其他范围使用jwt来保存用户基本信息，如id/name/role等。设定较短的access_token与较长的refresh_token就能在较宽松范围内保证数据良好。在前端可以通过操作了某些业务后立刻调用refresh_token来刷新。</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>&emsp;&emsp;没有银弹方案，初始阶段完全可以不用考虑太多，使用session即可，一般来说每秒几百到几千并发不是什么大问题。到后期业务拓展的时候再更换为jwt也可以，但是要求前期设计的时候就要有比较良好的模块化设计，便于重构</p>
+]]></content>
       <tags>
         <tag>技术选型</tag>
       </tags>
