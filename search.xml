@@ -1,6 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>工作记录：处理es与logstash的异常</title>
+    <url>/2020/03/04/work-es-and-logstash-bug/</url>
+    <content><![CDATA[<h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>&emsp;&emsp;今天大约中午的时候，某es集群中的一台机器故障，提示通信失败，master选举错误。某操作人员关闭权限插件search-guard后进行了一系列操作。</p>
+<blockquote>
+<p>es,logstash版本均7.2.0</p>
+</blockquote>
+<h1 id="解决"><a href="#解决" class="headerlink" title="解决"></a>解决</h1><p>&emsp;&emsp;logstash中先是关掉了密码，kibana也关掉了search-guard并重新启用了xpack。但是kibana需要两个索引正常，即<code>.kibana</code>与<code>.kibana_task_manaer</code>才能运行，因此需要es恢复到一定程度，至少这两个索引恢复才能运行。<br>&emsp;&emsp;期间发现logstash出现以下异常:<code>...[org.apache.kafka.clients.NetworkClient]....xx partitions have leader brokers without a matching listener...</code>，此时查询了一些资料，同时联想到我开了50个logstash进行消费，而kafka是三节点集群，50//3=16，因此推测是kafka集群中一节点挂掉了。</p>
+<p>&emsp;&emsp;经检查，是之前es挂掉挂掉的那台机器，kafka集群的一个进程也运行于此，因此重新开起来后问题解决。</p>
+<p>&emsp;&emsp;对于业务数据量较大的，indices数往往会超上限（默认每node为2000），因此动态重新调整了es的上限，按以前计算的每节点6000符合当前业务标准。</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line">PUT /_cluster/settings</span><br><span class="line">&#123;</span><br><span class="line">    <span class="attr">"persistent"</span> : &#123;</span><br><span class="line">        <span class="attr">"cluster.max_shards_per_node"</span> : <span class="number">6000</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>&emsp;&emsp;期间可能会遇到logstash消费能力超过es写入能力，这个可以不用管，logstash有重试机制，放一会就可以了。</p>
+]]></content>
+      <categories>
+        <category>工作记录</category>
+      </categories>
+  </entry>
+  <entry>
     <title>2020-03-03</title>
     <url>/2020/03/03/2020-03-03/</url>
     <content><![CDATA[<p>&emsp;&emsp;今天是周二了，大概从今天开始就会派发开发任务了。虽然大家都还是在远程开发，不过看着大家都忙碌起来了感觉自己很过意不去。要赶快跟大家交流，把开发任务提上日程。</p>
